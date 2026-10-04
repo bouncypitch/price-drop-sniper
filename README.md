@@ -95,6 +95,6 @@ DATABASE_URL=        # optional: falls back to in-memory store
 ALERT_EMAIL=you@example.com
 ```
 
-Re-record the demo video with `node scripts/record-demo.mjs && node scripts/build-video.mjs` (set `VOICE=` to change the narrator).
+Re-record the demo video with `node scripts/record-demo.mjs && node scripts/build-video.mjs` (narration: Microsoft neural voice `en-US-AvaMultilingualNeural` via `edge-tts`, one clip per line of `scripts/narration.txt` saved as `demo/seg<N>.aiff`).
 
 Point an AgentMail webhook (`message.received`) at `/api/inbound` to enable email-in. Hit `/api/sweep` on a schedule to run the Mastra sweep.
