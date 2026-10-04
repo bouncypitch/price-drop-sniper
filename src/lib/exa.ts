@@ -5,8 +5,8 @@ const exa = process.env.EXA_API_KEY ? new Exa(process.env.EXA_API_KEY) : null;
 export type Offer = { store: string; url: string; price: number };
 
 // Finds the same product at other retailers, with prices extracted by Exa structured output.
-export async function findOffers(productTitle: string): Promise<Offer[]> {
-  if (!exa) return [];
+export async function findOffers(productTitle: string): Promise<{ offers: Offer[]; image?: string }> {
+  if (!exa) return { offers: [] };
   const res = await exa.search(`${productTitle} buy`, {
     type: "auto",
     // Price comparison needs breadth across retailers, not the default 10.
@@ -30,7 +30,8 @@ export async function findOffers(productTitle: string): Promise<Offer[]> {
     contents: { highlights: true },
   });
   const content = (res as unknown as { output?: { content?: { offers?: Offer[] } } }).output?.content;
-  return (content?.offers ?? []).filter((o) => typeof o.price === "number" && o.price > 0);
+  const image = res.results.find((r) => (r as { image?: string }).image)?.image;
+  return { offers: (content?.offers ?? []).filter((o) => typeof o.price === "number" && o.price > 0), image };
 }
 
 // Fallback price read straight from the product URL via a live crawl.

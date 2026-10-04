@@ -9,6 +9,7 @@ export type Watch = {
   best_price: number | null;
   best_store: string | null;
   best_url: string | null;
+  image_url: string | null;
   currency: string;
   last_checked: string | null;
   created_at: string;
@@ -64,6 +65,7 @@ function ensureSchema() {
       price NUMERIC NOT NULL,
       checked_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )`;
+    await sql`ALTER TABLE watches ADD COLUMN IF NOT EXISTS image_url TEXT`;
   })();
   return g.__sniperSchema;
 }
@@ -85,7 +87,7 @@ export async function addWatch(url: string, targetPrice: number | null): Promise
   }
   const w: Watch = {
     id: mem.seq++, url, title: null, target_price: targetPrice, current_price: null, best_price: null,
-    best_store: null, best_url: null, currency: "USD", last_checked: null, created_at: new Date().toISOString(),
+    best_store: null, best_url: null, image_url: null, currency: "USD", last_checked: null, created_at: new Date().toISOString(),
   };
   mem.watches.push(w);
   return w;
@@ -116,6 +118,7 @@ export async function updateWatch(id: number, p: Partial<Watch>): Promise<void> 
       best_price = ${p.best_price ?? null},
       best_store = ${p.best_store ?? null},
       best_url = ${p.best_url ?? null},
+      image_url = COALESCE(${p.image_url ?? null}, image_url),
       currency = COALESCE(${p.currency ?? null}, currency),
       last_checked = now()
       WHERE id = ${id}`;

@@ -17,21 +17,52 @@ Built at the [Build Personal Agents Hack](https://build-personal-agents.com) (SF
 
 ## Architecture
 
-```
- chat / voice / barcode / email
-            │
-     intent router (src/lib/router.ts)
-            │
-   ┌────────┴─────────────────────────────┐
-   │  checkWatch (src/lib/sniper.ts)      │
-   │  1. Kernel cloud browser → page HTML │──▶ schema.org / meta / retailer price parsing
-   │     (fallback: fetch → Exa crawl)    │
-   │  2. Exa search + outputSchema        │──▶ same product at other retailers, with prices
-   │  3. Neon Postgres                    │──▶ watches + price history
-   │  4. AgentMail                        │──▶ deal alert from the agent's own inbox
-   └──────────────────────────────────────┘
-            ▲
-   Mastra workflow "price-drop-sniper" (src/lib/workflow.ts) — scheduled sweep
+```mermaid
+flowchart LR
+    subgraph IN["You"]
+        direction TB
+        chat["💬 Chat / paste link"]
+        voice["🎤 Voice"]
+        scan["📷 Barcode"]
+        email["📧 Email a link"]
+    end
+
+    subgraph APP["Sniper on Fly.io (Next.js)"]
+        direction TB
+        ui["assistant-ui<br/>streaming step cards"]
+        router["Intent router"]
+        sniper["checkWatch()"]
+        wf["Mastra workflow<br/>scheduled sweep"]
+    end
+
+    subgraph READ["1 · Read the live price"]
+        direction TB
+        kernel["Kernel<br/>stealth cloud browser"]
+        parse["Price + image parser<br/>schema.org · meta · Amazon"]
+        exaCrawl["Exa contents<br/>live-crawl fallback"]
+    end
+
+    subgraph HUNT["2 · Hunt other stores"]
+        exaSearch["Exa search<br/>+ outputSchema → offers"]
+    end
+
+    neon[("3 · Neon Postgres<br/>watches + price history")]
+    agentmail["4 · AgentMail<br/>agent's own inbox"]
+    phone["📱 Your inbox"]
+
+    chat --> ui --> router
+    voice --> ui
+    scan --> ui
+    email -- webhook --> router
+    router --> sniper
+    wf --> sniper
+    sniper --> kernel --> parse
+    sniper -. fallback .-> exaCrawl
+    sniper --> exaSearch
+    sniper --> neon
+    sniper -- "deal found" --> agentmail --> phone
+    router -- "questions" --> exaAnswer["Exa answer<br/>cited replies"]
+    neon --> ui
 ```
 
 | Sponsor | Role |

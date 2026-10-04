@@ -26,8 +26,10 @@ await page.goto(BASE);
 mark("hero");
 await pause(5000);
 
-mark("snipe by name");
-await ask("Snipe Sony WH-1000XM5 headphones under $300");
+mark("snipe amazon");
+await ask("https://www.amazon.com/dp/B09XS7JWHH under $280");
+await page.getByText("watch live").waitFor({ timeout: 20000 }).catch(() => {});
+mark("live view");
 await pause(1500);
 await idle();
 mark("snipe done");

@@ -1,7 +1,8 @@
-0.4|Meet Sniper — your personal deal-hunting agent.
-4.4|Paste a link, say a product, or scan a barcode.
-9.4|Ask it to snipe Sony headphones under three hundred dollars. Exa searches every retailer, Neon saves the price history, and AgentMail emails you the deal: Micro Center has it for two forty nine.
-21.2|Ask a shopping question, and it answers with live, cited prices from across the web.
-30.8|A Mastra workflow re-checks every product on a schedule, and a Kernel cloud browser reads prices, even on stores that block bots.
-41.4|Your watchlist tracks every dollar saved.
-45.8|Never overpay again. Built with Kernel, Exa, Neon, Mastra, AgentMail, assistant-ui, and Fly.
+0.4|Meet Sniper, your personal deal-hunting agent.
+4.6|Paste a link, say a product, or scan a barcode.
+9.6|Here's an Amazon link with a target price. A Kernel cloud browser opens the page and reads the live price, even on sites that block bots.
+18.8|Then Exa searches every other retailer, Neon saves the price history, and AgentMail emails you when there's a better deal.
+29.2|Ask any shopping question, and it answers with live, cited prices.
+39.1|A Mastra workflow re-checks every product on a schedule, so you never miss a drop.
+59.3|Your watchlist tracks every dollar you save.
+64.5|Never overpay again. Built with Kernel, Exa, Neon, Mastra, AgentMail, assistant-ui, and Fly.

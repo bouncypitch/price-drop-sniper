@@ -22,7 +22,7 @@ const ff = (...args) => execFileSync("ffmpeg", ["-loglevel", "error", "-y", ...a
 const v = ["-c:v", "libx264", "-pix_fmt", "yuv420p", "-r", "30"];
 ff("-loop", "1", "-t", "4", "-i", "intro.png", "-vf", "fade=in:0:15", ...v, "intro.mp4");
 ff("-i", "raw.webm", "-vf", "scale=1280:720", ...v, "-an", "body.mp4");
-ff("-loop", "1", "-t", "10", "-i", "outro.png", "-vf", "fade=out:st=9:d=1", ...v, "outro.mp4");
+ff("-loop", "1", "-t", "9", "-i", "outro.png", "-vf", "fade=out:st=8:d=1", ...v, "outro.mp4");
 ff("-i", "intro.mp4", "-i", "body.mp4", "-i", "outro.mp4", "-filter_complex", "[0:v][1:v][2:v]concat=n=3:v=1:a=0[v]", "-map", "[v]", ...v, "video.mp4");
 
 const inputs = segs.flatMap((_, i) => ["-i", `seg${i}.aiff`]);

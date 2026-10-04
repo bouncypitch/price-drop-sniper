@@ -25,6 +25,7 @@ type Watch = {
   best_price: number | null;
   best_store: string | null;
   best_url: string | null;
+  image_url: string | null;
   last_checked: string | null;
   checks: Check[];
 };
@@ -96,6 +97,15 @@ const STEP_LABEL: Record<string, { label: string; tone: string }> = {
 const GRADIENT = "bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500";
 const GRADIENT_TEXT = `${GRADIENT} bg-clip-text text-transparent`;
 
+// Product photo on a soft tinted tile; falls back to a gradient placeholder while unknown.
+function ProductImage({ src, className }: { src?: string | null; className: string }) {
+  return (
+    <div className={`${className} shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-indigo-50 via-violet-50 to-fuchsia-50 ring-1 ring-neutral-200/70`}>
+      {src ? <img src={src} alt="" referrerPolicy="no-referrer" className="size-full bg-white object-contain p-1.5" /> : null}
+    </div>
+  );
+}
+
 function Spinner() {
   return <span className="inline-block size-3 animate-spin rounded-full border-[1.5px] border-violet-200 border-t-violet-600" />;
 }
@@ -105,6 +115,7 @@ function SnipeCard({ args, result }: ToolCallMessagePartProps) {
     steps: Step[];
     done: boolean;
     title?: string;
+    image?: string | null;
     current?: number | null;
     best?: Offer | null;
     offers?: Offer[];
@@ -115,9 +126,12 @@ function SnipeCard({ args, result }: ToolCallMessagePartProps) {
   return (
     <div className="my-3 rounded-2xl border border-neutral-200 bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
       <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="text-[15px] font-medium text-neutral-900">{r.title ?? String(args.target)}</div>
+        <div className="flex items-center gap-4">
+          <ProductImage src={r.image} className="size-16" />
+          <div>
+          <div className="line-clamp-2 text-[15px] font-medium text-neutral-900">{r.title ?? String(args.target)}</div>
           {args.targetPrice ? <div className="mt-0.5 text-xs text-neutral-500">Target {usd(Number(args.targetPrice))}</div> : null}
+          </div>
         </div>
         {!r.done && <Spinner />}
       </div>
@@ -129,7 +143,15 @@ function SnipeCard({ args, result }: ToolCallMessagePartProps) {
           </li>
         ))}
       </ol>
-      {live && !r.done && <iframe src={live} className="mt-4 h-56 w-full rounded-xl border border-neutral-200" title="Live browser" />}
+      {live && !r.done && (
+        <a href={live} target="_blank" className="mt-4 flex items-center gap-2 rounded-xl bg-sky-50 px-3 py-2 text-[13px] text-sky-800 hover:bg-sky-100">
+          <span className="relative flex size-2">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-sky-400 opacity-75" />
+            <span className="relative inline-flex size-2 rounded-full bg-sky-500" />
+          </span>
+          Cloud browser is reading the page · watch live ↗
+        </a>
+      )}
       {r.done && all.length > 0 && (
         <div className="mt-4 divide-y divide-neutral-100 border-t border-neutral-100">
           {r.current != null && (
@@ -390,7 +412,10 @@ function Watchlist() {
           const drop = w.current_price != null && w.best_price != null && w.best_price < w.current_price;
           return (
             <a key={w.id} href={w.best_url ?? undefined} target="_blank" className="block rounded-2xl border border-neutral-200 bg-white p-4 transition hover:border-neutral-300">
-              <div className="line-clamp-2 text-[13px] leading-snug text-neutral-700">{w.title ?? w.url.replace(/^search:/, "")}</div>
+              <div className="flex items-center gap-3">
+                <ProductImage src={w.image_url} className="size-12" />
+                <div className="line-clamp-2 text-[13px] leading-snug text-neutral-700">{w.title ?? w.url.replace(/^search:/, "")}</div>
+              </div>
               <div className="mt-2 flex items-baseline gap-2">
                 <span className="text-xl font-semibold tracking-tight tabular-nums text-neutral-900">{usd(w.best_price)}</span>
                 {drop && <span className="text-[13px] tabular-nums text-neutral-400 line-through">{usd(w.current_price)}</span>}

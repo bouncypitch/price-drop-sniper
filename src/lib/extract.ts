@@ -1,5 +1,5 @@
 // Deterministic price extraction from product-page HTML: schema.org JSON-LD, price meta tags, then retailer-specific markup.
-export type PagePrice = { title: string; price: number | null; currency: string };
+export type PagePrice = { title: string; price: number | null; currency: string; image?: string };
 
 const decode = (s: string) => s.replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ").trim();
 const toNum = (v: unknown): number | null => {
@@ -30,9 +30,11 @@ function fromJsonLd(html: string): PagePrice | null {
       const type = node["@type"];
       const isProduct = type === "Product" || (Array.isArray(type) && type.includes("Product"));
       if (!isProduct) continue;
+      const img = Array.isArray(node.image) ? node.image[0] : node.image;
+      const image = typeof img === "string" ? img : typeof (img as LdNode | undefined)?.url === "string" ? String((img as LdNode).url) : undefined;
       for (const offer of walk(node.offers)) {
         const price = toNum(offer.price ?? offer.lowPrice ?? (offer.priceSpecification as LdNode | undefined)?.price);
-        if (price) return { title: String(node.name ?? ""), price, currency: String(offer.priceCurrency ?? "USD") };
+        if (price) return { title: String(node.name ?? ""), price, currency: String(offer.priceCurrency ?? "USD"), image };
       }
     }
   }
@@ -61,13 +63,22 @@ function fromRetailerMarkup(html: string): number | null {
 
 export function extractPriceFromHtml(html: string, fallbackTitle: string): PagePrice | null {
   const titleTag = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1];
-  const title = decode(meta(html, "og:title") ?? titleTag ?? fallbackTitle).slice(0, 160);
+  const title = decode(meta(html, "og:title") ?? titleTag ?? fallbackTitle)
+    .replace(/^Amazon\.com\s*[:\-]\s*/i, "")
+    .replace(/\s*[|:\-]\s*Amazon(\.com)?.*$/i, "")
+    .slice(0, 160);
+  const image =
+    meta(html, "og:image") ??
+    html.match(/"hiRes"\s*:\s*"(https:[^"]+)"/)?.[1] ?? // Amazon image gallery data
+    html.match(/data-old-hires=["'](https:[^"']+)["']/i)?.[1] ??
+    html.match(/data-a-dynamic-image=["']\{(?:&quot;|")(https:[^"&]+)/i)?.[1] ??
+    undefined;
   const ld = fromJsonLd(html);
-  if (ld) return { ...ld, title: ld.title || title };
+  if (ld) return { ...ld, title: ld.title || title, image: ld.image ?? image };
   const metaPrice = toNum(meta(html, "product:price:amount") ?? meta(html, "og:price:amount") ?? meta(html, "price"));
   const currency = meta(html, "product:price:currency") ?? meta(html, "og:price:currency") ?? "USD";
-  if (metaPrice) return { title, price: metaPrice, currency };
+  if (metaPrice) return { title, price: metaPrice, currency, image };
   const markup = fromRetailerMarkup(html);
-  if (markup) return { title, price: markup, currency: "USD" };
+  if (markup) return { title, price: markup, currency: "USD", image };
   return null;
 }

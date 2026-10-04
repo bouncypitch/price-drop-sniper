@@ -2,7 +2,7 @@ import { addChecks, getWatch, updateWatch, type Watch } from "./db";
 import { extractPriceFromHtml } from "./extract";
 import { fetchHtml, readPage } from "./kernel";
 import { findOffers, readPriceViaExa, type Offer } from "./exa";
-import { sendMail } from "./mail";
+import { sendAlert } from "./mail";
 
 export type Step = { tool: "kernel" | "extract" | "exa" | "neon" | "agentmail"; text: string; data?: unknown };
 
@@ -43,15 +43,16 @@ export async function checkWatch(id: number, opts: { alertTo?: string; onStep?: 
   let currentPrice: number | null = null;
   let currency = watch.currency;
   let liveViewUrl: string | undefined;
+  let image: string | undefined;
   if (!isQuery) try {
     const page = await readPage(watch.url, (live) => step({ tool: "kernel", text: `Opening ${host(watch.url)} in a Kernel cloud browser`, data: { liveViewUrl: live } }));
     if (page) {
       liveViewUrl = page.liveViewUrl;
       const p = extractPriceFromHtml(page.html, title);
       if (p?.price) {
-        ({ title, currency } = p);
+        ({ title, currency, image } = p);
         currentPrice = p.price;
-        step({ tool: "extract", text: `Read ${usd(p.price)} from the live page`, data: { title, price: p.price } });
+        step({ tool: "extract", text: `Read ${usd(p.price)} from the live page`, data: { title, price: p.price, image } });
       }
     }
   } catch (e) {
@@ -61,9 +62,9 @@ export async function checkWatch(id: number, opts: { alertTo?: string; onStep?: 
     const html = await fetchHtml(watch.url);
     const p = html ? extractPriceFromHtml(html, title) : null;
     if (p?.price) {
-      ({ title, currency } = p);
+      ({ title, currency, image } = p);
       currentPrice = p.price;
-      step({ tool: "extract", text: `Read ${usd(p.price)} from ${host(watch.url)}`, data: { title, price: p.price } });
+      step({ tool: "extract", text: `Read ${usd(p.price)} from ${host(watch.url)}`, data: { title, price: p.price, image } });
     }
   }
   if (currentPrice === null && !isQuery) {
@@ -77,10 +78,12 @@ export async function checkWatch(id: number, opts: { alertTo?: string; onStep?: 
   }
 
   // 2. Hunt for the same product elsewhere.
-  const offers = (await findOffers(title).catch((e) => {
+  const found = await findOffers(title).catch((e) => {
     step({ tool: "exa", text: `Exa search failed: ${(e as Error).message.slice(0, 120)}` });
-    return [] as Offer[];
-  })).filter((o) => host(o.url) !== host(watch.url));
+    return { offers: [] as Offer[], image: undefined };
+  });
+  image ??= found.image;
+  const offers = found.offers.filter((o) => host(o.url) !== host(watch.url));
   step({ tool: "exa", text: `Found ${offers.length} other stores selling it`, data: { offers } });
 
   const all: Offer[] = [...(currentPrice !== null ? [{ store: host(watch.url), url: watch.url, price: currentPrice }] : []), ...offers];
@@ -110,6 +113,7 @@ export async function checkWatch(id: number, opts: { alertTo?: string; onStep?: 
     best_price: best?.price ?? null,
     best_store: best?.store ?? null,
     best_url: best?.url ?? null,
+    image_url: image ?? null,
   });
 
   // Skip repeat alerts for a deal we've already reported (same best price as last check).
@@ -126,9 +130,9 @@ export async function checkWatch(id: number, opts: { alertTo?: string; onStep?: 
       .join(", ");
     const text = `Hi,\n\nQuick update on the ${title} you asked me to watch: ${reason}.\n\n${best.url}\n\n${others ? `For comparison: ${others}.\n\n` : ""}I'll keep an eye on it.\n\nSniper`;
     try {
-      await sendMail(to, `Price update: ${title.slice(0, 60)} is now ${usd(best.price)}`, text);
+      const kind = await sendAlert(to, `Price update: ${title.slice(0, 60)} is now ${usd(best.price)}`, text);
       alerted = true;
-      step({ tool: "agentmail", text: `Emailed alert to ${to}`, data: { reason } });
+      step({ tool: "agentmail", text: kind === "full" ? `Emailed alert to ${to}` : `Sent a heads-up to ${to}`, data: { reason } });
     } catch (e) {
       step({ tool: "agentmail", text: `Alert email not sent (${(e as { statusCode?: number }).statusCode ?? "error"})` });
     }
