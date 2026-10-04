@@ -18,10 +18,10 @@ Built at the [Build Personal Agents Hack](https://build-personal-agents.com) (SF
 
 ## Architecture
 
-<p align="center"><img src="docs/architecture.png" alt="Sniper architecture: inputs flow through assistant-ui and an intent router to checkWatch, which reads the live price with Kernel, hunts other stores with Exa, saves history to Neon, and alerts through AgentMail; a Mastra workflow re-runs it on a schedule" width="100%"></p>
+<p align="center"><img src="docs/architecture-dark.png" alt="Sniper architecture: inputs flow through assistant-ui and an intent router to checkWatch, which reads the live price with Kernel, hunts other stores with Exa, saves history to Neon, and alerts through AgentMail; a Mastra workflow re-runs it on a schedule" width="100%"></p>
 
 <details>
-<summary>Mermaid source (regenerate the image with <code>node scripts/render-diagram.mjs</code>)</summary>
+<summary>Mermaid source (regenerate with <code>node scripts/render-diagram.mjs dark</code>)</summary>
 
 ```mermaid
 %%{init: {"theme": "base", "flowchart": {"curve": "basis", "nodeSpacing": 28, "rankSpacing": 56, "padding": 14}, "themeVariables": {"fontFamily": "Inter, -apple-system, Helvetica, sans-serif", "fontSize": "14px", "lineColor": "#a5b4fc", "primaryTextColor": "#1f2937", "clusterBkg": "#ffffff", "clusterBorder": "#e5e7eb", "edgeLabelBackground": "#ffffff"}}}%%
