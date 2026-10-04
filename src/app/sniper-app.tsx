@@ -191,7 +191,13 @@ function SimpleCard({ toolName, args, result }: ToolCallMessagePartProps) {
     sweep: "Re-checking every watched product",
     watchlist: "Loading your watchlist",
   };
-  const res = result as { productName?: string | null; citations?: { title: string; url: string }[] } | undefined;
+  const res = result as
+    | {
+        productName?: string | null;
+        citations?: { title: string; url: string }[];
+        results?: { id: number; title: string; best: number | null; store: string | null; deal: boolean; alert: string }[];
+      }
+    | undefined;
   return (
     <div className="my-3 rounded-2xl border border-neutral-200 bg-white px-5 py-4 text-[13px] text-neutral-600">
       <div className="flex items-center justify-between gap-4">
@@ -199,6 +205,19 @@ function SimpleCard({ toolName, args, result }: ToolCallMessagePartProps) {
         {result === undefined && <Spinner />}
       </div>
       {res?.productName && <div className="mt-1 font-medium text-neutral-900">{res.productName}</div>}
+      {res?.results && (
+        <div className="mt-3 divide-y divide-neutral-100 border-t border-neutral-100">
+          {res.results.map((x) => (
+            <div key={x.id} className="flex items-center justify-between gap-3 py-2">
+              <span className="truncate text-neutral-700">{x.title.split(/[,|]| with /)[0]}</span>
+              <span className="flex shrink-0 items-center gap-2">
+                <span className="tabular-nums text-neutral-900">{usd(x.best)}</span>
+                {x.deal && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">Deal</span>}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
       {res?.citations && res.citations.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-1.5">
           {res.citations.map((c, i) => (

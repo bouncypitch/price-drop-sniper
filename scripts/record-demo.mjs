@@ -1,6 +1,6 @@
 // Records a ~60s product walkthrough of the running app (npm run dev) into demo/raw.webm.
 import { chromium } from "playwright-core";
-import { mkdirSync, readdirSync, renameSync } from "node:fs";
+import { mkdirSync, readdirSync, renameSync, writeFileSync } from "node:fs";
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const OUT = new URL("../demo/", import.meta.url).pathname;
@@ -10,7 +10,11 @@ const browser = await chromium.launch({ executablePath: "/Applications/Google Ch
 const context = await browser.newContext({ viewport: { width: 1280, height: 720 }, recordVideo: { dir: OUT, size: { width: 1280, height: 720 } } });
 const page = await context.newPage();
 const t0 = Date.now();
-const mark = (label) => console.log(`${((Date.now() - t0) / 1000).toFixed(1)}s ${label}`);
+const marks = {};
+const mark = (label) => {
+  marks[label] = (Date.now() - t0) / 1000;
+  console.log(`${marks[label].toFixed(1)}s ${label}`);
+};
 const pause = (ms) => page.waitForTimeout(ms);
 const idle = () => page.waitForFunction(() => !document.querySelector(".animate-spin"), null, { timeout: 60000 });
 
@@ -58,4 +62,5 @@ await context.close();
 await browser.close();
 const vid = readdirSync(OUT).find((f) => f.endsWith(".webm") && f !== "raw.webm");
 renameSync(OUT + vid, OUT + "raw.webm");
+writeFileSync(OUT + "marks.json", JSON.stringify(marks, null, 1));
 console.log("saved demo/raw.webm");

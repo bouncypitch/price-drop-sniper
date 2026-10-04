@@ -10,6 +10,7 @@ export type Watch = {
   best_store: string | null;
   best_url: string | null;
   image_url: string | null;
+  alerted_price: number | null;
   currency: string;
   last_checked: string | null;
   created_at: string;
@@ -38,6 +39,7 @@ const toWatch = (r: Record<string, unknown>): Watch => ({
   target_price: num(r.target_price),
   current_price: num(r.current_price),
   best_price: num(r.best_price),
+  alerted_price: num(r.alerted_price),
 });
 
 function ensureSchema() {
@@ -66,6 +68,7 @@ function ensureSchema() {
       checked_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )`;
     await sql`ALTER TABLE watches ADD COLUMN IF NOT EXISTS image_url TEXT`;
+    await sql`ALTER TABLE watches ADD COLUMN IF NOT EXISTS alerted_price NUMERIC`;
   })();
   return g.__sniperSchema;
 }
@@ -87,7 +90,7 @@ export async function addWatch(url: string, targetPrice: number | null): Promise
   }
   const w: Watch = {
     id: mem.seq++, url, title: null, target_price: targetPrice, current_price: null, best_price: null,
-    best_store: null, best_url: null, image_url: null, currency: "USD", last_checked: null, created_at: new Date().toISOString(),
+    best_store: null, best_url: null, image_url: null, alerted_price: null, currency: "USD", last_checked: null, created_at: new Date().toISOString(),
   };
   mem.watches.push(w);
   return w;
@@ -126,6 +129,16 @@ export async function updateWatch(id: number, p: Partial<Watch>): Promise<void> 
   }
   const w = mem.watches.find((x) => x.id === id);
   if (w) Object.assign(w, Object.fromEntries(Object.entries(p).filter(([, v]) => v !== undefined)), { last_checked: new Date().toISOString() });
+}
+
+// Records the price we actually emailed about, so repeat sweeps don't re-alert the same deal.
+export async function markAlerted(id: number, price: number): Promise<void> {
+  await ensureSchema();
+  if (sql) await sql`UPDATE watches SET alerted_price = ${price} WHERE id = ${id}`;
+  else {
+    const w = mem.watches.find((x) => x.id === id);
+    if (w) w.alerted_price = price;
+  }
 }
 
 export async function deleteWatch(id: number): Promise<void> {

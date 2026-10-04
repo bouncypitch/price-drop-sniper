@@ -1,4 +1,4 @@
-import { addChecks, getWatch, updateWatch, type Watch } from "./db";
+import { addChecks, getWatch, markAlerted, updateWatch, type Watch } from "./db";
 import { extractPriceFromHtml } from "./extract";
 import { fetchHtml, readPage } from "./kernel";
 import { findOffers, readPriceViaExa, type Offer } from "./exa";
@@ -12,6 +12,7 @@ export type CheckResult = {
   offers: Offer[];
   best: Offer | null;
   alerted: boolean;
+  alert: "sent" | "already" | "blocked" | "none";
   reason: string | null;
   log: string[];
   liveViewUrl?: string;
@@ -117,8 +118,9 @@ export async function checkWatch(id: number, opts: { alertTo?: string; onStep?: 
   });
 
   // Skip repeat alerts for a deal we've already reported (same best price as last check).
-  const alreadyAlerted = watch.best_price !== null && best !== null && Math.abs(watch.best_price - best.price) < 0.01 && watch.target_price !== null && best.price <= watch.target_price;
+  const alreadyAlerted = watch.alerted_price !== null && best !== null && Math.abs(watch.alerted_price - best.price) < 0.01;
   let alerted = false;
+  let alert: CheckResult["alert"] = "none";
   const to = opts.alertTo ?? process.env.ALERT_EMAIL;
   if (reason && best && to && !alreadyAlerted) {
     // Plain, personal wording: AgentMail's spam filter flags promotional-looking mail.
@@ -132,14 +134,18 @@ export async function checkWatch(id: number, opts: { alertTo?: string; onStep?: 
     try {
       const kind = await sendAlert(to, `Price update: ${title.slice(0, 60)} is now ${usd(best.price)}`, text);
       alerted = true;
+      alert = "sent";
+      await markAlerted(id, best.price);
       step({ tool: "agentmail", text: kind === "full" ? `Emailed alert to ${to}` : `Sent a heads-up to ${to}`, data: { reason } });
     } catch (e) {
+      alert = "blocked";
       step({ tool: "agentmail", text: `Alert email not sent (${(e as { statusCode?: number }).statusCode ?? "error"})` });
     }
   } else if (reason && alreadyAlerted) {
+    alert = "already";
     step({ tool: "agentmail", text: "Already alerted you about this price" });
   }
 
   const fresh = (await getWatch(id))!;
-  return { watch: fresh, currentPrice, offers, best, alerted, reason, log, liveViewUrl };
+  return { watch: fresh, currentPrice, offers, best, alerted, alert, reason, log, liveViewUrl };
 }

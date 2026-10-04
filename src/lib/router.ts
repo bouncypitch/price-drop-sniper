@@ -81,8 +81,13 @@ export async function handleMessage(text: string, emit: (e: AgentEvent) => void)
     emit({ type: "tool", id, name: "sweep", args: {} });
     const { results } = await runSniperSweep();
     emit({ type: "tool", id, name: "sweep", args: {}, result: { results } });
-    const hits = results.filter((r) => r.alerted).length;
-    return emit({ type: "text", text: `Mastra sweep re-checked ${results.length} product${results.length === 1 ? "" : "s"} — ${hits} deal alert${hits === 1 ? "" : "s"} sent.` });
+    const n = (k: string) => results.filter((r) => r.alert === k).length;
+    const deals = results.filter((r) => r.deal).length;
+    const parts = [`**${deals} deal${deals === 1 ? "" : "s"} found**`];
+    if (n("sent")) parts.push(`${n("sent")} alert${n("sent") === 1 ? "" : "s"} emailed`);
+    if (n("already")) parts.push(`${n("already")} already in your inbox`);
+    if (n("blocked")) parts.push(`${n("blocked")} email${n("blocked") === 1 ? "" : "s"} held by the mail provider`);
+    return emit({ type: "text", text: `Re-checked ${results.length} product${results.length === 1 ? "" : "s"}: ${parts.join(", ")}.` });
   }
 
   const del = text.match(/^\s*(?:stop|remove|delete|unwatch)\s+#?(\d+)/i);

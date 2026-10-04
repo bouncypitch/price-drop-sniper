@@ -19,51 +19,74 @@ Built at the [Build Personal Agents Hack](https://build-personal-agents.com) (SF
 ## Architecture
 
 ```mermaid
+%%{init: {"theme": "base", "flowchart": {"curve": "basis", "nodeSpacing": 28, "rankSpacing": 56, "padding": 14}, "themeVariables": {"fontFamily": "Inter, -apple-system, Helvetica, sans-serif", "fontSize": "14px", "lineColor": "#a5b4fc", "primaryTextColor": "#1f2937", "clusterBkg": "#ffffff", "clusterBorder": "#e5e7eb", "edgeLabelBackground": "#ffffff"}}}%%
 flowchart LR
-    subgraph IN["You"]
+    subgraph IN[" You "]
         direction TB
-        chat["💬 Chat / paste link"]
-        voice["🎤 Voice"]
-        scan["📷 Barcode"]
-        email["📧 Email a link"]
+        chat(["💬  Chat or paste a link"])
+        voice(["🎤  Say a product"])
+        scan(["📷  Scan a barcode"])
+        email(["✉️  Email a link"])
     end
 
-    subgraph APP["Sniper on Fly.io (Next.js)"]
+    subgraph APP[" Sniper · Next.js on Fly.io "]
         direction TB
-        ui["assistant-ui<br/>streaming step cards"]
-        router["Intent router"]
-        sniper["checkWatch()"]
-        wf["Mastra workflow<br/>scheduled sweep"]
+        ui["<b>assistant-ui</b><br/><small>live step cards</small>"]
+        router["<b>Intent router</b><br/><small>link · product · barcode · question</small>"]
+        sniper{{"<b>checkWatch()</b>"}}
+        wf["<b>Mastra workflow</b><br/><small>scheduled sweep</small>"]
     end
 
-    subgraph READ["1 · Read the live price"]
+    subgraph READ[" ① Read the live price "]
         direction TB
-        kernel["Kernel<br/>stealth cloud browser"]
-        parse["Price + image parser<br/>schema.org · meta · Amazon"]
-        exaCrawl["Exa contents<br/>live-crawl fallback"]
+        kernel["<b>Kernel</b><br/><small>stealth cloud browser</small>"]
+        parse["<b>Price + photo parser</b><br/><small>schema.org · meta · Amazon</small>"]
+        exaCrawl["<b>Exa contents</b><br/><small>live-crawl fallback</small>"]
     end
 
-    subgraph HUNT["2 · Hunt other stores"]
-        exaSearch["Exa search<br/>+ outputSchema → offers"]
+    subgraph HUNT[" ② Hunt every store "]
+        exaSearch["<b>Exa search</b><br/><small>structured offers per retailer</small>"]
+        exaAnswer["<b>Exa answer</b><br/><small>cited shopping replies</small>"]
     end
 
-    neon[("3 · Neon Postgres<br/>watches + price history")]
-    agentmail["4 · AgentMail<br/>agent's own inbox"]
-    phone["📱 Your inbox"]
+    neon[("<b>③ Neon Postgres</b><br/><small>watches · price history</small>")]
+    agentmail["<b>④ AgentMail</b><br/><small>the agent's own inbox</small>"]
+    phone(["📱  Your inbox"])
 
-    chat --> ui --> router
+    chat --> ui
     voice --> ui
     scan --> ui
-    email -- webhook --> router
+    ui --> router
+    email -. webhook .-> router
     router --> sniper
-    wf --> sniper
+    router -. questions .-> exaAnswer
+    wf -. every hour .-> sniper
     sniper --> kernel --> parse
     sniper -. fallback .-> exaCrawl
     sniper --> exaSearch
     sniper --> neon
-    sniper -- "deal found" --> agentmail --> phone
-    router -- "questions" --> exaAnswer["Exa answer<br/>cited replies"]
-    neon --> ui
+    neon -. watchlist .-> ui
+    sniper == "deal found" ==> agentmail ==> phone
+
+    classDef user fill:#f5f3ff,stroke:#ddd6fe,color:#4c1d95
+    classDef app fill:#eef2ff,stroke:#c7d2fe,color:#1e1b4b
+    classDef core fill:#6366f1,stroke:#4f46e5,color:#ffffff
+    classDef read fill:#f0f9ff,stroke:#bae6fd,color:#0c4a6e
+    classDef hunt fill:#faf5ff,stroke:#e9d5ff,color:#581c87
+    classDef data fill:#ecfdf5,stroke:#a7f3d0,color:#064e3b
+    classDef mail fill:#fff1f2,stroke:#fecdd3,color:#881337
+    class chat,voice,scan,email,phone user
+    class ui,router,wf app
+    class sniper core
+    class kernel,parse,exaCrawl read
+    class exaSearch,exaAnswer hunt
+    class neon data
+    class agentmail mail
+    style IN fill:#fcfcfd,stroke:#ede9fe,stroke-dasharray:4 4
+    style APP fill:#fcfcfd,stroke:#e0e7ff
+    style READ fill:#fcfcfd,stroke:#e0f2fe
+    style HUNT fill:#fcfcfd,stroke:#f3e8ff
+    linkStyle default stroke:#a5b4fc,stroke-width:1.5px
 ```
 
 | Sponsor | Role |

@@ -3,7 +3,14 @@ import { z } from "zod";
 import { listWatches } from "./db";
 import { checkWatch } from "./sniper";
 
-const summary = z.object({ id: z.number(), title: z.string(), best: z.number().nullable(), alerted: z.boolean() });
+const summary = z.object({
+  id: z.number(),
+  title: z.string(),
+  best: z.number().nullable(),
+  store: z.string().nullable(),
+  deal: z.boolean(),
+  alert: z.enum(["sent", "already", "blocked", "none"]),
+});
 
 const loadWatches = createStep({
   id: "load-watches",
@@ -20,7 +27,14 @@ const snipeAll = createStep({
     const results = await Promise.all(
       inputData.ids.map(async (id) => {
         const r = await checkWatch(id).catch(() => null);
-        return { id, title: r?.watch.title ?? `#${id}`, best: r?.best?.price ?? null, alerted: r?.alerted ?? false };
+        return {
+          id,
+          title: r?.watch.title ?? `#${id}`,
+          best: r?.best?.price ?? null,
+          store: r?.best?.store ?? null,
+          deal: !!r?.reason,
+          alert: r?.alert ?? "none",
+        };
       }),
     );
     return { results };
