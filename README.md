@@ -5,7 +5,7 @@
 
 Built at the [Build Personal Agents Hack](https://build-personal-agents.com) (SF, Oct 2026).
 
-**▶ [Watch the 1-minute demo](demo/sniper-demo.mp4)**
+**▶ [Watch the 90-second demo](demo/sniper-demo.mp4)**
 
 ## What it does
 
@@ -17,6 +17,11 @@ Built at the [Build Personal Agents Hack](https://build-personal-agents.com) (SF
 - **Re-checks on a schedule** → a Mastra workflow sweeps every watched product and emails deal alerts.
 
 ## Architecture
+
+<p align="center"><img src="docs/architecture.png" alt="Sniper architecture: inputs flow through assistant-ui and an intent router to checkWatch, which reads the live price with Kernel, hunts other stores with Exa, saves history to Neon, and alerts through AgentMail; a Mastra workflow re-runs it on a schedule" width="100%"></p>
+
+<details>
+<summary>Mermaid source (regenerate the image with <code>node scripts/render-diagram.mjs</code>)</summary>
 
 ```mermaid
 %%{init: {"theme": "base", "flowchart": {"curve": "basis", "nodeSpacing": 28, "rankSpacing": 56, "padding": 14}, "themeVariables": {"fontFamily": "Inter, -apple-system, Helvetica, sans-serif", "fontSize": "14px", "lineColor": "#a5b4fc", "primaryTextColor": "#1f2937", "clusterBkg": "#ffffff", "clusterBorder": "#e5e7eb", "edgeLabelBackground": "#ffffff"}}}%%
@@ -88,6 +93,8 @@ flowchart LR
     style HUNT fill:#fcfcfd,stroke:#f3e8ff
     linkStyle default stroke:#a5b4fc,stroke-width:1.5px
 ```
+
+</details>
 
 | Sponsor | Role |
 |---|---|
