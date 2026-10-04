@@ -1,15 +1,17 @@
-
-
-https://github.com/user-attachments/assets/20c60323-a895-431a-b54d-d39fe69a46b5
+<p align="center"><img src="docs/team-photo.png" alt="Sniper — never overpay again. $198.96 saved across Dyson, Apple Watch and Sony headphones" width="100%"></p>
 
 # 🎯 Price-Drop Sniper
 
 **Your personal deal-hunting agent.** Paste a product link, say what you want, scan a barcode, or email it a link — it hunts every store for the best price and emails you the moment it drops.
 
+<p>
+  <a href="https://price-drop-sniper.fly.dev"><b>Live app</b></a> ·
+  <a href="https://price-drop-sniper.fly.dev/demo.mp4"><b>90-second demo</b></a> ·
+  <a href="#architecture"><b>Architecture</b></a>
+</p>
 
 Built at the [Build Personal Agents Hack](https://build-personal-agents.com) (SF, Oct 2026).
 
-**▶ [Watch the 90-second demo](demo/sniper-demo.mp4)**
 
 ## What it does
 
