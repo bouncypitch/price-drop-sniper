@@ -13,6 +13,10 @@
 Built at the [Build Personal Agents Hack](https://build-personal-agents.com) (SF, Oct 2026).
 
 
+https://github.com/user-attachments/assets/19186737-cc80-4bcb-bed5-7c5a11631a75
+
+
+
 ## What it does
 
 - **Paste a link** → reads the live price on that page, finds the same product at other retailers, saves the price history, and alerts you if anything beats your target.
