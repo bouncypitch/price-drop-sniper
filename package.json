@@ -9,9 +9,21 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0",
+    "@assistant-ui/react": "^0.15.23",
+    "@assistant-ui/react-markdown": "^0.14.18",
+    "@mastra/core": "^1.74.0",
+    "@neon/config": "^1.8.3",
+    "@neon/env": "^1.5.0",
+    "@neondatabase/serverless": "^1.2.0",
+    "@onkernel/sdk": "^0.119.0",
+    "agentmail": "^0.5.35",
+    "exa-js": "^2.25.0",
     "next": "16.3.8",
+    "playwright-core": "^1.63.0",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

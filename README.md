@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎯 Price-Drop Sniper
 
-## Getting Started
+**Your personal deal-hunting agent.** Paste a product link, say what you want, scan a barcode, or email it a link — it hunts every store for the best price and emails you the moment it drops.
 
-First, run the development server:
+Built at the [Build Personal Agents Hack](https://build-personal-agents.com) (SF, Oct 2026).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## What it does
+
+- **Paste a link** → reads the live price on that page, finds the same product at other retailers, saves the price history, and alerts you if anything beats your target.
+- **Say it** 🎤 → "snipe Sony XM5 headphones under 300" (browser speech recognition, no API key).
+- **Scan it** 📷 → point your camera at a barcode; the UPC is resolved to a product and sniped.
+- **Email it** 📬 → forward a product link to the agent's own inbox; it replies with the best price and keeps watching.
+- **Ask it** 🔎 → "what's the cheapest Switch 2 right now?" gets a grounded answer with citations.
+- **Re-checks on a schedule** → a Mastra workflow sweeps every watched product and emails deal alerts.
+
+## Architecture
+
+```
+ chat / voice / barcode / email
+            │
+     intent router (src/lib/router.ts)
+            │
+   ┌────────┴─────────────────────────────┐
+   │  checkWatch (src/lib/sniper.ts)      │
+   │  1. Kernel cloud browser → page HTML │──▶ schema.org / meta / retailer price parsing
+   │     (fallback: fetch → Exa crawl)    │
+   │  2. Exa search + outputSchema        │──▶ same product at other retailers, with prices
+   │  3. Neon Postgres                    │──▶ watches + price history
+   │  4. AgentMail                        │──▶ deal alert from the agent's own inbox
+   └──────────────────────────────────────┘
+            ▲
+   Mastra workflow "price-drop-sniper" (src/lib/workflow.ts) — scheduled sweep
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| Sponsor | Role |
+|---|---|
+| **Kernel** | Stealth cloud browser loads bot-protected product pages; live view streams into the chat |
+| **Exa** | Cross-retailer price search with structured output, barcode → product, live-crawl price fallback, grounded Q&A |
+| **Neon** | Postgres for watches and price history |
+| **Mastra** | Workflow that sweeps and re-prices every watch |
+| **AgentMail** | The agent's own inbox: sends alerts, receives links by email |
+| **assistant-ui** | Chat UI with streaming per-step tool cards |
+| **Fly.io** | Hosting |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+No LLM credits required: prices are parsed deterministically from page markup, and Exa provides the language layer.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Run it
 
-## Learn More
+```bash
+npm install
+cp .env.example .env.local   # fill in keys
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+`.env.local`:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+AGENTMAIL_API_KEY=   AGENTMAIL_INBOX=you@agentmail.to
+EXA_API_KEY=
+KERNEL_API_KEY=      # optional: falls back to fetch + Exa
+DATABASE_URL=        # optional: falls back to in-memory store
+ALERT_EMAIL=you@example.com
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Point an AgentMail webhook (`message.received`) at `/api/inbound` to enable email-in. Hit `/api/sweep` on a schedule to run the Mastra sweep.
