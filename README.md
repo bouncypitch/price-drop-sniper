@@ -4,6 +4,8 @@
 
 Built at the [Build Personal Agents Hack](https://build-personal-agents.com) (SF, Oct 2026).
 
+**▶ [Watch the 1-minute demo](demo/sniper-demo.mp4)**
+
 ## What it does
 
 - **Paste a link** → reads the live price on that page, finds the same product at other retailers, saves the price history, and alerts you if anything beats your target.
@@ -61,5 +63,7 @@ KERNEL_API_KEY=      # optional: falls back to fetch + Exa
 DATABASE_URL=        # optional: falls back to in-memory store
 ALERT_EMAIL=you@example.com
 ```
+
+Re-record the demo video with `node scripts/record-demo.mjs && node scripts/build-video.mjs` (set `VOICE=` to change the narrator).
 
 Point an AgentMail webhook (`message.received`) at `/api/inbound` to enable email-in. Hit `/api/sweep` on a schedule to run the Mastra sweep.

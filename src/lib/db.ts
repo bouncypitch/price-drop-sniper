@@ -70,6 +70,15 @@ function ensureSchema() {
 
 export async function addWatch(url: string, targetPrice: number | null): Promise<Watch> {
   await ensureSchema();
+  // Re-sniping the same link or product updates the existing watch instead of duplicating it.
+  const existing = (await listWatches()).find((w) => w.url.toLowerCase() === url.toLowerCase());
+  if (existing) {
+    if (targetPrice !== null) {
+      if (sql) await sql`UPDATE watches SET target_price = ${targetPrice} WHERE id = ${existing.id}`;
+      else existing.target_price = targetPrice;
+    }
+    return { ...existing, target_price: targetPrice ?? existing.target_price };
+  }
   if (sql) {
     const rows = await sql`INSERT INTO watches (url, target_price) VALUES (${url}, ${targetPrice}) RETURNING *`;
     return toWatch(rows[0]);

@@ -45,9 +45,9 @@ async function snipe(target: string, targetPrice: number | null, emit: (e: Agent
     args,
     result: { steps, done: true, title: r.watch.title, current: r.currentPrice, best: r.best, offers: r.offers, alerted: r.alerted, reason: r.reason },
   });
-  const lines = [`🎯 Now watching **${r.watch.title}**${targetPrice ? ` (target ${usd(targetPrice)})` : ""}.`];
+  const lines = [`Watching **${r.watch.title}**${targetPrice ? ` (target ${usd(targetPrice)})` : ""}.`];
   if (r.best) lines.push(`Best price right now: **${usd(r.best.price)} at ${r.best.store}**.`);
-  if (r.alerted) lines.push(`📬 ${r.reason}. I emailed you the deal.`);
+  if (r.alerted) lines.push(`${r.reason}. I emailed you the deal.`);
   else lines.push("I'll keep checking and email you when it drops.");
   emit({ type: "text", text: lines.join(" ") });
 }

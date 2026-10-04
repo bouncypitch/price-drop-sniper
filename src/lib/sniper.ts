@@ -112,21 +112,28 @@ export async function checkWatch(id: number, opts: { alertTo?: string; onStep?: 
     best_url: best?.url ?? null,
   });
 
+  // Skip repeat alerts for a deal we've already reported (same best price as last check).
+  const alreadyAlerted = watch.best_price !== null && best !== null && Math.abs(watch.best_price - best.price) < 0.01 && watch.target_price !== null && best.price <= watch.target_price;
   let alerted = false;
   const to = opts.alertTo ?? process.env.ALERT_EMAIL;
-  if (reason && best && to) {
-    const rows = all
+  if (reason && best && to && !alreadyAlerted) {
+    // Plain, personal wording: AgentMail's spam filter flags promotional-looking mail.
+    const others = all
+      .filter((o) => o.url !== best.url)
       .sort((a, b) => a.price - b.price)
-      .map((o) => `<tr><td style="padding:4px 12px 4px 0">${o.store}</td><td style="padding:4px 12px 4px 0"><b>${usd(o.price)}</b></td><td><a href="${o.url}">view</a></td></tr>`)
-      .join("");
-    await sendMail(
-      to,
-      `🎯 Sniped: ${title} — ${usd(best.price)}`,
-      `${reason}.\n\nBuy: ${best.url}\n\n— Price-Drop Sniper`,
-      `<p style="font-size:16px">${reason}.</p><p><a href="${best.url}" style="background:#111;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none">Buy at ${best.store} for ${usd(best.price)}</a></p><table style="font-family:sans-serif;font-size:14px">${rows}</table><p style="color:#888">— Price-Drop Sniper</p>`,
-    );
-    alerted = true;
-    step({ tool: "agentmail", text: `Emailed alert to ${to}`, data: { reason } });
+      .slice(0, 3)
+      .map((o) => `${o.store} ${usd(o.price)}`)
+      .join(", ");
+    const text = `Hi,\n\nQuick update on the ${title} you asked me to watch: ${reason}.\n\n${best.url}\n\n${others ? `For comparison: ${others}.\n\n` : ""}I'll keep an eye on it.\n\nSniper`;
+    try {
+      await sendMail(to, `Price update: ${title.slice(0, 60)} is now ${usd(best.price)}`, text);
+      alerted = true;
+      step({ tool: "agentmail", text: `Emailed alert to ${to}`, data: { reason } });
+    } catch (e) {
+      step({ tool: "agentmail", text: `Alert email not sent (${(e as { statusCode?: number }).statusCode ?? "error"})` });
+    }
+  } else if (reason && alreadyAlerted) {
+    step({ tool: "agentmail", text: "Already alerted you about this price" });
   }
 
   const fresh = (await getWatch(id))!;

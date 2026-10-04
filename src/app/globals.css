@@ -1,11 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 body {
-  background: #0a0a0a;
+  background: #fff;
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
-.prose p { margin: 0.4em 0; }
-.prose a { text-decoration: underline; }
+.prose p { margin: 0.35em 0; }
+.prose a { text-decoration: underline; text-underline-offset: 2px; }

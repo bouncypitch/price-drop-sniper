@@ -41,3 +41,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .neon
+
+# demo video intermediates (final cut is demo/sniper-demo.mp4)
+demo/*
+!demo/sniper-demo.mp4
