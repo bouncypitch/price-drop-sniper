@@ -2,8 +2,6 @@
 
 **Your personal deal-hunting agent.** Paste a product link, say what you want, scan a barcode, or email it a link — it hunts every store for the best price and emails you the moment it drops.
 
-https://github.com/user-attachments/assets/f36de4da-f373-4dba-bb5d-79f328dc6a0d
-
 
 Built at the [Build Personal Agents Hack](https://build-personal-agents.com) (SF, Oct 2026).
 
