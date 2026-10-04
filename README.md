@@ -1,3 +1,7 @@
+
+
+https://github.com/user-attachments/assets/20c60323-a895-431a-b54d-d39fe69a46b5
+
 # 🎯 Price-Drop Sniper
 
 **Your personal deal-hunting agent.** Paste a product link, say what you want, scan a barcode, or email it a link — it hunts every store for the best price and emails you the moment it drops.
