@@ -5,8 +5,7 @@
 **Your personal deal-hunting agent.** Paste a product link, say what you want, scan a barcode, or email it a link — it hunts every store for the best price and emails you the moment it drops.
 
 <p>
-  <a href="https://price-drop-sniper.fly.dev"><b>Live app</b></a> ·
-  <a href="https://price-drop-sniper.fly.dev/demo.mp4"><b>90-second demo</b></a> ·
+  <a href="demo/sniper-demo.mp4"><b>90-second demo</b></a> ·
   <a href="#architecture"><b>Architecture</b></a>
 </p>
 
